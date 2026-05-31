@@ -6,3 +6,5 @@
 .tmp_versions/
 Module.symvers
 modules.order
+hx711_cal
+hx711_cal.o
