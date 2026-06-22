@@ -1,0 +1,76 @@
+// sts3215.c - serdev driver skeleton for Feetech STS3215 serial bus servo
+#include <linux/module.h>
+#include <linux/of.h>
+#include <linux/serdev.h>
+
+struct sts3215_dev {
+    struct serdev_device *serdev;
+};
+
+// Called when the serdev core receives bytes from the UART (servo replies)
+static int sts3215_receive_buf(struct serdev_device *serdev,
+                               const unsigned char *buf, size_t count)
+{
+    dev_info(&serdev->dev, "received %zu bytes from servo\n", count);
+    return count;  // tell core we consumed all bytes
+}
+
+static const struct serdev_device_ops sts3215_serdev_ops = {
+    .receive_buf = sts3215_receive_buf,
+};
+
+static int sts3215_probe(struct serdev_device *serdev)
+{
+    struct sts3215_dev *sdev;
+    int ret;
+
+    dev_info(&serdev->dev, "sts3215: probe start\n");
+
+    sdev = devm_kzalloc(&serdev->dev, sizeof(*sdev), GFP_KERNEL);
+    if (!sdev)
+        return -ENOMEM;
+
+    sdev->serdev = serdev;
+    serdev_device_set_drvdata(serdev, sdev);
+    serdev_device_set_client_ops(serdev, &sts3215_serdev_ops);
+
+    ret = serdev_device_open(serdev);
+    if (ret) {
+        dev_err(&serdev->dev, "failed to open serdev: %d\n", ret);
+        return ret;
+    }
+
+    // Configure UART: 1Mbps, 8N1
+    serdev_device_set_baudrate(serdev, 1000000);
+    serdev_device_set_flow_control(serdev, false);
+    serdev_device_set_parity(serdev, SERDEV_PARITY_NONE);
+
+    dev_info(&serdev->dev, "sts3215: probe done, UART configured at 1Mbps\n");
+    return 0;
+}
+
+static void sts3215_remove(struct serdev_device *serdev)
+{
+    serdev_device_close(serdev);
+    dev_info(&serdev->dev, "sts3215: removed\n");
+}
+
+static const struct of_device_id sts3215_of_match[] = {
+    { .compatible = "malus,sts3215" },
+    { }
+};
+MODULE_DEVICE_TABLE(of, sts3215_of_match);
+
+static struct serdev_device_driver sts3215_driver = {
+    .driver = {
+        .name = "sts3215",
+        .of_match_table = sts3215_of_match,
+    },
+    .probe = sts3215_probe,
+    .remove = sts3215_remove,
+};
+module_serdev_device_driver(sts3215_driver);
+
+MODULE_LICENSE("GPL");
+MODULE_AUTHOR("qingshan");
+MODULE_DESCRIPTION("serdev driver for Feetech STS3215 serial bus servo");
