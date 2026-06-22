@@ -7,3 +7,5 @@
 *.symvers
 *.order
 .tmp_versions/
+*.dtb
+*.dtbo
