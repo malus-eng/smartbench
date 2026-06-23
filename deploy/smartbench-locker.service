@@ -1,0 +1,17 @@
+[Unit]
+Description=Smartbench parcel locker controller
+After=systemd-modules-load.service
+Requires=systemd-modules-load.service
+
+[Service]
+Type=simple
+ExecStartPre=/bin/sleep 3
+ExecStart=/home/rock/smartbench/integration/locker
+Restart=on-failure
+RestartSec=3
+User=root
+StandardOutput=journal
+StandardError=journal
+
+[Install]
+WantedBy=multi-user.target
