@@ -80,6 +80,14 @@ static bool debug;
 module_param(debug, bool, 0644);
 MODULE_PARM_DESC(debug, "Dump raw RX bytes on read/ping for protocol debugging (default off)");
 
+static int scan;
+module_param(scan, int, 0444);
+MODULE_PARM_DESC(scan, "Scan IDs 0..N at probe (e.g. scan=20) and report which respond");
+
+static int baud_override;
+module_param(baud_override, int, 0444);
+MODULE_PARM_DESC(baud_override, "Override baud rate at probe (e.g. baud_override=1000000)");
+
 struct sts3215 {
 	struct serdev_device *serdev;
 	struct device        *dev;
@@ -537,7 +545,13 @@ static int sts3215_receive_buf(struct serdev_device *serdev,
 	struct sts3215 *st = serdev_device_get_drvdata(serdev);
 	unsigned long flags;
 	size_t i;
-
+ if (debug)
+                dev_info(&serdev->dev, "RX %zu bytes: %02x %02x %02x %02x ...\n",
+                                count,
+                                count > 0 ? buf[0] : 0,
+                                count > 1 ? buf[1] : 0,
+                                count > 2 ? buf[2] : 0,
+                                count > 3 ? buf[3] : 0);
 	if (!st)
 		return count;
 
@@ -700,9 +714,11 @@ static int sts3215_probe(struct serdev_device *serdev)
 		dev_err(dev, "serdev_device_open failed: %d\n", ret);
 		return ret;
 	}
-
-	baud = serdev_device_set_baudrate(serdev, STS_BAUD);
-	dev_info(dev, "baud requested %d, got %u\n", STS_BAUD, baud);
+{
+                int want = baud_override > 0 ? baud_override : STS_BAUD;
+                baud = serdev_device_set_baudrate(serdev, want);
+                dev_info(dev, "baud requested %d, got %u\n", want, baud);
+        }
 	serdev_device_set_flow_control(serdev, false);
 	serdev_device_set_parity(serdev, SERDEV_PARITY_NONE);
 
@@ -712,16 +728,44 @@ static int sts3215_probe(struct serdev_device *serdev)
 		goto err_close;
 	}
 
-	dev_info(dev, "sts3215 ready (id=%d)\n", st->id);
+dev_info(dev, "sts3215 ready (id=%d)\n", st->id);
 
-	mutex_lock(&st->lock);
-	sts3215_ping(st);
-	mutex_unlock(&st->lock);
+        if (scan > 0) {
+                int sid, found = 0;
+                u8 saved_id = st->id;
 
-	if (selftest)
-		sts3215_selftest(st);
+                dev_info(dev, "ID SCAN: probing IDs 0..%d\n", scan);
+                for (sid = 0; sid <= scan; sid++) {
+                        int r;
+                        st->id = sid;
+                        reinit_completion(&st->rx_done);
+                        st->rx_state = RX_H1;
+                        st->rx_ok = false;
+                        st->rx_ndata = 0;
 
-	return 0;
+                        mutex_lock(&st->lock);
+                        r = sts3215_ping(st);
+                        mutex_unlock(&st->lock);
+
+                        if (r == 0) {
+                                dev_info(dev, "ID SCAN: >>> servo responded at ID=%d <<<\n", sid);
+                                found++;
+                        }
+                        msleep(20);
+                }
+                st->id = saved_id;
+                dev_info(dev, "ID SCAN: done, %d servo(s) found\n", found);
+                return 0;
+        }
+
+        mutex_lock(&st->lock);
+        sts3215_ping(st);
+        mutex_unlock(&st->lock);
+
+        if (selftest)
+                sts3215_selftest(st);
+
+        return 0;
 
 err_close:
 	serdev_device_close(serdev);

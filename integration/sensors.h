@@ -16,8 +16,8 @@
 #define LOCKER_SENSORS_H
 
 /* Servo positions (0..4095 over ~360 deg). Tune to your mechanism. */
-#define SERVO_POS_LOCKED    2048	/* door closed / latched */
-#define SERVO_POS_OPEN      1024	/* door open             */
+#define SERVO_POS_LOCKED    1024	/* door closed / latched */
+#define SERVO_POS_OPEN      2048	/* door open             */
 
 /* Open every device node and put the servo in a known (locked) state.
  * Returns 0 on success, negative errno on failure. */

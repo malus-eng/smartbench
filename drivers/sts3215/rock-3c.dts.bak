@@ -3744,7 +3744,9 @@
 		pinctrl-names = "default";
 		pinctrl-0 = <0xe9>;
 		status = "okay";
-		phandle = <0x1a7>;
+		phandle = <0x1a7>;		sts3215 {
+			compatible = "malus,sts3215";
+		};
 	};
 
 	serial@fe680000 {
@@ -3762,23 +3764,21 @@
 		phandle = <0x1a8>;
 	};
 
-serial@fe690000 {
-    compatible = "rockchip,rk3568-uart\0snps,dw-apb-uart";
-    reg = <0x00 0xfe690000 0x00 0x100>;
-    interrupts = <0x00 0x79 0x04>;
-    clocks = <0x23 0x12f 0x23 0x12c>;
-    clock-names = "baudclk\0apb_pclk";
-    reg-shift = <0x02>;
-    reg-io-width = <0x04>;
-    dmas = <0x42 0x0a 0x42 0x0b>;
-    pinctrl-names = "default";
-    pinctrl-0 = <0x2bd>;
-    status = "okay"; 
-    phandle = <0x1a9>;
-    sts3215 { 
-        compatible = "malus,sts3215";
-    };
-};
+	serial@fe690000 {
+		compatible = "rockchip,rk3568-uart\0snps,dw-apb-uart";
+		reg = <0x00 0xfe690000 0x00 0x100>;
+		interrupts = <0x00 0x79 0x04>;
+		clocks = <0x23 0x12f 0x23 0x12c>;
+		clock-names = "baudclk\0apb_pclk";
+		reg-shift = <0x02>;
+		reg-io-width = <0x04>;
+		dmas = <0x42 0x0a 0x42 0x0b>;
+		pinctrl-names = "default";
+		pinctrl-0 = <0xeb>;
+		status = "disabled";
+		phandle = <0x1a9>;
+	};
+
 	serial@fe6a0000 {
 		compatible = "rockchip,rk3568-uart\0snps,dw-apb-uart";
 		reg = <0x00 0xfe6a0000 0x00 0x100>;
