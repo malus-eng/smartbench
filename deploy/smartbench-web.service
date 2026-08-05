@@ -1,0 +1,20 @@
+[Unit]
+Description=Smartbench web control panel
+# Ordering only. Wants -- NOT Requires -- on the controller unit: a manual
+# sweep deliberately stops the controller to borrow the servo, and Requires=
+# would propagate that stop back to this service, killing it before it could
+# restart the controller and taking both units down.
+After=network-online.target smartbench-locker.service
+Wants=network-online.target smartbench-locker.service
+
+[Service]
+Type=simple
+ExecStart=/usr/bin/python3 /home/rock/smartbench/webctl/webctl.py
+Restart=on-failure
+RestartSec=3
+User=root
+StandardOutput=journal
+StandardError=journal
+
+[Install]
+WantedBy=multi-user.target
