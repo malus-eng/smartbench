@@ -1,14 +1,4 @@
-/*
- * ky008.c - KY-008 Laser Transmitter driver for Smartbench
- *
- * A minimal character device driver that controls a KY-008 laser module
- * via a single GPIO line. Writing "1" to /dev/ky008 turns the laser on,
- * writing "0" turns it off.
- *
- * This is a learning-stage driver using legacy GPIO numbering. A proper
- * device-tree-based version will replace this once the platform driver
- * model is introduced.
- */
+
 #include <linux/module.h>
 #include <linux/init.h>
 #include <linux/kernel.h>
