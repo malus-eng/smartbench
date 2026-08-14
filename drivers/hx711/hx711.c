@@ -1,21 +1,3 @@
-/*
- * hx711.c - HX711 24-bit ADC driver for load cells (v2: tare, scale, averaging)
- *
- * Interfaces:
- *   read()                            -> raw 24-bit signed ADC value (ASCII)
- *   ioctl(HX711_IOC_TARE)             -> capture current reading as zero point
- *   ioctl(HX711_IOC_SET_SCALE, int)   -> set counts-per-gram * 1000
- *   ioctl(HX711_IOC_READ_MG, int*)    -> read weight in milligrams
- *
- * Reads use N-sample averaging to reduce per-sample noise.
- *
- * HX711 uses a custom 2-wire protocol (DT + SCK). An SCK high pulse > 50us
- * puts the chip to sleep, so we disable local interrupts during the 25-pulse
- * bit-bang. The kernel must not use floating point, so scale and weight use
- * fixed-point integer arithmetic (x1000).
- *
- * Pins: DT = PIN_15 (GPIO 104), SCK = PIN_16 (GPIO 105)
- */
 
 #include <linux/module.h>
 #include <linux/init.h>
