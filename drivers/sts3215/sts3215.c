@@ -1,22 +1,3 @@
-// SPDX-License-Identifier: GPL-2.0
-/*
- * Feetech STS3215 serial bus servo driver (serdev, half-duplex 1-wire)
- *
- * Target: ROCK 3C / RK3566, kernel 5.10.160 (no CONFIG_OF_OVERLAY)
- * Bound to uart3 (serial@fe670000) via a "malus,sts3215" child node in the DT.
- *
- * Protocol: FeeTech SCS/STS half-duplex packet
- *   request : 0xFF 0xFF  ID  LEN  INSTR  PARAM...  CHECKSUM
- *   response: 0xFF 0xFF  ID  LEN  ERR    PARAM...  CHECKSUM
- *   LEN      = nparams + 2
- *   CHECKSUM = ~(ID + LEN + INSTR/ERR + sum(PARAM)) & 0xFF
- *   STS3215 multi-byte values are LITTLE-endian.
- *
- * Single-wire half-duplex: every byte we transmit is echoed back on RX before
- * the servo's reply arrives.  We drop exactly TX-length bytes (rx_skip), then a
- * byte-wise state machine reassembles the reply frame and a completion wakes the
- * waiting reader.
- */
 
 #include <linux/module.h>
 #include <linux/kernel.h>
