@@ -1,19 +1,4 @@
-/*
- * hcsr04.c - HC-SR04 ultrasonic distance sensor driver (v2, IRQ-based)
- *
- * Reading from /dev/hcsr04 triggers one measurement and returns the
- * distance in centimetres as an ASCII string.
- *
- * v2 design improvements over v1:
- *   - TRIG pulse still generated with udelay(10)
- *   - ECHO pulse width measured by capturing both edges via GPIO IRQ
- *   - .read() blocks the calling process on a wait queue while the
- *     measurement happens in interrupt context, freeing the CPU
- *   - ktime_get_ns() called from inside the ISR for minimal latency
- *
- * This eliminates the ~60 ms of busy-wait CPU usage in v1, while
- * keeping or improving timing precision.
- */
+
 
 #include <linux/module.h>
 #include <linux/init.h>
