@@ -1,15 +1,4 @@
-// SPDX-License-Identifier: GPL-2.0
-/*
- * sensors.c - hardware abstraction layer implementation
- *
- * One file, three transports:
- *   distance -> read()  on /dev/hcsr04   (text integer, centimetres)
- *   weight   -> ioctl() on /dev/hx711    (HX711_IOC_READ_MG, milligrams)
- *   servo    -> sysfs   under the sts3215 driver dir (goal_position, etc.)
- *
- * The servo sysfs directory name (e.g. "serial1-0") is discovered at runtime
- * rather than hard-coded, so a different bind order still works.
- */
+
 #include "sensors.h"
 
 #include <stdio.h>
