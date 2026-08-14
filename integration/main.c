@@ -1,33 +1,3 @@
-// SPDX-License-Identifier: GPL-2.0
-/*
- * main.c - smart parcel locker controller (polling state machine)
- *
- * Physical model: a single STS3215 bus servo drives a small flap/paddle that
- * sweeps horizontally across the top of the bin. An HC-SR04, mounted on a low
- * baffle, scans forward across the bin top; a parcel dropped on top lies in the
- * beam and is detected. An HX711 load cell measures accumulated weight.
- *
- * There is no "door" and no "lock" - just one paddle that rotates 60 deg to
- * acknowledge a parcel, then returns. The control logic is a compact,
- * event-driven state machine on a fixed-period polling loop.
- *
- * Flow:
- *   IDLE  ---(distance < DETECT_CM  AND  weight jump > PLACE_MG, debounced)-->
- *   ACTING: sweep paddle to +60 deg, hold OPEN_HOLD_MS (open loop),
- *           then unconditionally return to HOME, re-baseline weight, back to IDLE.
- *
- * Engineering points worth explaining at interview:
- *   - Trigger is an AND of two independent sensors (ultrasonic + load cell),
- *     each debounced over DEBOUNCE_N samples, so neither a stray ping nor a
- *     load-cell glitch alone can false-trigger.
- *   - Weight uses a *relative* delta against a baseline re-sampled on every
- *     return to IDLE. This absorbs the HX711's slow zero drift instead of
- *     fighting it with absolute thresholds.
- *   - The action is open-loop (rotate, dwell, return) on purpose: it avoids
- *     depending on load-cell settling or servo feedback mid-motion, which keeps
- *     the demo robust against drift and mechanical jitter.
- *   - Graceful shutdown: SIGINT/SIGTERM releases torque and closes fds.
- */
 #include "sensors.h"
 
 #include <stdio.h>
